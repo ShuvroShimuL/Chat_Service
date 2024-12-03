@@ -1,0 +1,210 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>scripts.module01 &mdash; cse327Project 0.1 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=80d5e7a1" />
+      <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../_static/documentation_options.js?v=2709fde1"></script>
+      <script src="../../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../index.html" class="icon icon-home">
+            cse327Project
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../modules.html">test_8pm</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">cse327Project</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">scripts.module01</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for scripts.module01</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">This module basically interact with user and checks the authenticity and stores user data in database.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="c1"># Importing nesssary Modules</span>
+<span class="kn">import</span> <span class="nn">streamlit</span> <span class="k">as</span> <span class="nn">st</span>
+<span class="kn">import</span> <span class="nn">pyrebase</span>
+<span class="kn">import</span> <span class="nn">subprocess</span>
+<span class="kn">from</span> <span class="nn">datetime</span> <span class="kn">import</span> <span class="n">datetime</span>
+<span class="kn">import</span> <span class="nn">os</span>
+
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd"># Configuration key of firebase </span>
+<span class="sd">firebase_config = {</span>
+<span class="sd">  &quot;apiKey&quot;: &quot;AIzaSyD7T9XpwAsjsbwWkJZQgaGQLYDG5EdrCgA&quot;,</span>
+<span class="sd">  &quot;authDomain&quot;: &quot;project327-aee83.firebaseapp.com&quot;,</span>
+<span class="sd">  &quot;projectId&quot;: &quot;project327-aee83&quot;,</span>
+<span class="sd">  &quot;databaseURL&quot;: &quot;https://project327-aee83-default-rtdb.asia-southeast1.firebasedatabase.app/&quot;,</span>
+<span class="sd">  &quot;storageBucket&quot;: &quot;project327-aee83.firebasestorage.app&quot;,</span>
+<span class="sd">  &quot;messagingSenderId&quot;: &quot;629868004363&quot;,</span>
+<span class="sd">  &quot;appId&quot;: &quot;1:629868004363:web:23e7d7ca2caf8f83cff30e&quot;,</span>
+<span class="sd">  &quot;measurementId&quot;: &quot;G-1MN7NH2PVW&quot;</span>
+<span class="sd">}</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd"># Initialization of firebase</span>
+<span class="sd">firebase = pyrebase.initialize_app(firebase_config)</span>
+<span class="sd"># Create the anchor to access the firebase</span>
+<span class="sd">auth = firebase.auth()</span>
+<span class="sd"># Create the database in firebase</span>
+<span class="sd">db = firebase.database()</span>
+
+
+<span class="sd"># Command to run chatbot</span>
+<span class="sd">cmd = &quot;streamlit run chatbot.py&quot;</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="c1"># Login function in the page</span>
+<div class="viewcode-block" id="login">
+<a class="viewcode-back" href="../../scripts.html#scripts.module01.login">[docs]</a>
+<span class="k">def</span> <span class="nf">login</span><span class="p">():</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    email = st.text_input(&quot;Email Address&quot;)</span>
+<span class="sd">    password = st.text_input(&quot;Password&quot;, type=&quot;password&quot;)</span>
+
+<span class="sd">    # If button actives then, (using exception handling to confirm the action)</span>
+<span class="sd">    if st.button(&quot;Login&quot;):</span>
+<span class="sd">        try:</span>
+<span class="sd">            # Checks whether the email and pass is macthed with existing email</span>
+<span class="sd">            user = auth.sign_in_with_email_and_password(email, password)</span>
+<span class="sd">            st.success(&quot;Logged in successfully!&quot;)</span>
+<span class="sd">            # If login process occurs successfully then run the chatbot</span>
+<span class="sd">            p = subprocess.Popen(cmd, shell = True)</span>
+<span class="sd">            # Stop the current process</span>
+<span class="sd">            os._exit(0)</span>
+<span class="sd">        except Exception as e:</span>
+<span class="sd">            st.warning(&quot;Incorrect email or Incorrect password!&quot;)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">pass</span></div>
+
+
+<span class="c1"># Sign up function in the page</span>
+<div class="viewcode-block" id="sign_up">
+<a class="viewcode-back" href="../../scripts.html#scripts.module01.sign_up">[docs]</a>
+<span class="k">def</span> <span class="nf">sign_up</span><span class="p">():</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    email = st.text_input(&quot;Email Address&quot;)</span>
+<span class="sd">    password = st.text_input(&quot;Password(min 6 characters)&quot;, type=&quot;password&quot;)</span>
+
+<span class="sd">    handle = st.text_input(&quot;Enter Your User Name&quot;)</span>
+<span class="sd">    # If button actives then, (using exception handling to confirm the action)</span>
+<span class="sd">    if st.button(&quot;Create my account&quot;):</span>
+<span class="sd">        try:</span>
+<span class="sd">            # Create new user with email and password</span>
+<span class="sd">            user = auth.create_user_with_email_and_password(email, password)</span>
+<span class="sd">            st.success(&quot;Your account is created suceesfully!&quot;)</span>
+<span class="sd">            st.balloons()</span>
+<span class="sd">            # Checks whether the email and pass is macthed with existing email</span>
+<span class="sd">            user = auth.sign_in_with_email_and_password(email, password)</span>
+<span class="sd">            # Creates database entries with user informations</span>
+<span class="sd">            db.child(user[&#39;localId&#39;]).child(&quot;Handle&quot;).set(handle)</span>
+<span class="sd">            db.child(user[&#39;localId&#39;]).child(&quot;Email&quot;).set(email)</span>
+<span class="sd">            db.child(user[&#39;localId&#39;]).child(&quot;ID&quot;).set(user[&#39;localId&#39;])</span>
+<span class="sd">            st.info(&quot;Login via login drop down selection&quot;)</span>
+<span class="sd">            </span>
+<span class="sd">        except Exception as e:</span>
+<span class="sd">            st.warning(&quot;Already account exists with this email!&quot;)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">pass</span></div>
+
+
+
+
+<div class="viewcode-block" id="main">
+<a class="viewcode-back" href="../../scripts.html#scripts.module01.main">[docs]</a>
+<span class="k">def</span> <span class="nf">main</span><span class="p">():</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    # Title and description</span>
+<span class="sd">    st.title(&quot;Welcome to the chatbot!&quot;)</span>
+<span class="sd">    choice = st.selectbox(&quot;Login/Signup&quot;,[&quot;Login&quot;,&quot;Sign up&quot;])</span>
+<span class="sd">    # Chose between selection box</span>
+<span class="sd">    if choice == &quot;Login&quot;:</span>
+<span class="sd">        login()</span>
+<span class="sd">    else:</span>
+<span class="sd">        sign_up()</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">pass</span></div>
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2024, ProjectMembers.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

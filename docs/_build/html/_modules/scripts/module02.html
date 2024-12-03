@@ -1,0 +1,231 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>scripts.module02 &mdash; cse327Project 0.1 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=80d5e7a1" />
+      <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../_static/documentation_options.js?v=2709fde1"></script>
+      <script src="../../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../index.html" class="icon icon-home">
+            cse327Project
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../modules.html">test_8pm</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">cse327Project</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">scripts.module02</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for scripts.module02</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">This module collects user queries and generate response using langchain. It also holds history of the conversation to main the contextual conversation. </span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="c1"># Importing nesssary Modules</span>
+<span class="kn">import</span> <span class="nn">streamlit</span> <span class="k">as</span> <span class="nn">st</span> 
+<span class="kn">from</span> <span class="nn">langchain_core.messages</span> <span class="kn">import</span> <span class="n">SystemMessage</span>
+<span class="kn">from</span> <span class="nn">groq</span> <span class="kn">import</span> <span class="n">Groq</span>
+<span class="kn">from</span> <span class="nn">langchain.chains</span> <span class="kn">import</span> <span class="n">ConversationChain</span>
+<span class="kn">from</span> <span class="nn">langchain.chains.conversation.memory</span> <span class="kn">import</span> <span class="n">ConversationBufferWindowMemory</span>
+<span class="kn">from</span> <span class="nn">langchain_groq</span> <span class="kn">import</span> <span class="n">ChatGroq</span>
+<span class="kn">import</span> <span class="nn">subprocess</span>
+<span class="kn">import</span> <span class="nn">speech_recognition</span> <span class="k">as</span> <span class="nn">sr</span>
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd"># Command to run chatbot</span>
+<span class="sd">cmd = &quot;streamlit run page.py&quot;</span>
+
+<span class="sd"># Set the memory length for the conversation</span>
+<span class="sd">conversational_memory_length = 10</span>
+<span class="sd">memory = ConversationBufferWindowMemory(k=conversational_memory_length)</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="c1"># Collecting user question</span>
+<div class="viewcode-block" id="get_user_input">
+<a class="viewcode-back" href="../../scripts.html#scripts.module02.get_user_input">[docs]</a>
+<span class="k">def</span> <span class="nf">get_user_input</span><span class="p">():</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    user_question = st.text_input(&quot;Ask a question:&quot;)</span>
+<span class="sd">    if st.button(&quot;🎙️&quot;):</span>
+<span class="sd">        user_question = voice_interact()</span>
+<span class="sd">    get_response(user_question)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">pass</span></div>
+
+
+<span class="c1"># Voice interact</span>
+<div class="viewcode-block" id="voice_interact">
+<a class="viewcode-back" href="../../scripts.html#scripts.module02.voice_interact">[docs]</a>
+<span class="k">def</span> <span class="nf">voice_interact</span><span class="p">():</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    # Obtain audio from the microphone</span>
+<span class="sd">    r = sr.Recognizer()</span>
+<span class="sd">    try:</span>
+<span class="sd">        with sr.Microphone() as source:</span>
+<span class="sd">            audio = r.listen(source, timeout=20)</span>
+<span class="sd">            user_question = r.recognize_google(audio)</span>
+<span class="sd">            st.text(&quot;🗣 : &quot; + user_question)</span>
+<span class="sd">            return user_question</span>
+<span class="sd">    except Exception as e:</span>
+<span class="sd">        st.warning(&quot;Failed to understand!&quot;)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">pass</span></div>
+
+
+<span class="c1"># Generate user response</span>
+<div class="viewcode-block" id="get_response">
+<a class="viewcode-back" href="../../scripts.html#scripts.module02.get_response">[docs]</a>
+<span class="k">def</span> <span class="nf">get_response</span><span class="p">(</span><span class="n">user_question</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    # Initialize session state for chat history</span>
+<span class="sd">    if &quot;chat_history&quot; not in st.session_state:</span>
+<span class="sd">        st.session_state.chat_history = []</span>
+<span class="sd">    else:</span>
+<span class="sd">        # Restore chat history in memory</span>
+<span class="sd">        for message in st.session_state.chat_history:</span>
+<span class="sd">            memory.save_context(</span>
+<span class="sd">                {&quot;input&quot;: message[&quot;human&quot;]},  </span>
+<span class="sd">                {&quot;output&quot;: message[&quot;AI&quot;]}    </span>
+<span class="sd">            )</span>
+
+<span class="sd">    # Initialize Groq Langchain chat object and conversation</span>
+<span class="sd">    groq_chat = ChatGroq(</span>
+<span class="sd">        groq_api_key=&quot;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&quot;, </span>
+<span class="sd">        model_name=&quot;llama3-70b-8192&quot;</span>
+<span class="sd">    )</span>
+<span class="sd">    # Built-in function in conversation langchain framework</span>
+<span class="sd">    conversation = ConversationChain(</span>
+<span class="sd">        llm=groq_chat,</span>
+<span class="sd">        memory=memory</span>
+<span class="sd">    )</span>
+
+<span class="sd">    try:</span>
+<span class="sd">        # Get the response using the correct key</span>
+<span class="sd">        response = conversation.predict(input=user_question)  # Fixed key</span>
+<span class="sd">        # Save the interaction in session state</span>
+<span class="sd">        message = {&quot;human&quot;: user_question, &quot;AI&quot;: response}</span>
+<span class="sd">        st.session_state.chat_history.append(message)</span>
+<span class="sd">        </span>
+<span class="sd">        # Display the chatbot&#39;s response</span>
+<span class="sd">        st.write(&quot;Chatbot 🤖: &quot; + response)</span>
+<span class="sd">        if message:</span>
+<span class="sd">            st.success(&quot;Response genereated successfully!&quot;)</span>
+<span class="sd">                </span>
+<span class="sd">    except Exception as e:</span>
+<span class="sd">            st.warning(&quot;Something Happened!&quot;)</span>
+<span class="sd">    </span>
+<span class="sd">    st.text(&quot; &quot;)</span>
+<span class="sd">    st.text(&quot; &quot;)</span>
+<span class="sd">    </span>
+<span class="sd">    if st.button(&quot;Exit&quot;):</span>
+<span class="sd">        exit_from_chatbot()</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">pass</span></div>
+
+
+<span class="c1"># Exit from the current page </span>
+<div class="viewcode-block" id="exit_from_chatbot">
+<a class="viewcode-back" href="../../scripts.html#scripts.module02.exit_from_chatbot">[docs]</a>
+<span class="k">def</span> <span class="nf">exit_from_chatbot</span><span class="p">():</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    p = subprocess.Popen(cmd, shell = True)</span>
+<span class="sd">    os._exit(0)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">pass</span></div>
+
+    
+ 
+<div class="viewcode-block" id="main">
+<a class="viewcode-back" href="../../scripts.html#scripts.module02.main">[docs]</a>
+<span class="k">def</span> <span class="nf">main</span><span class="p">():</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    # Title and description</span>
+<span class="sd">    st.title(&quot;Chat with 🚀&quot;)</span>
+<span class="sd">    st.write(&quot;Hello, I&#39;m your friendly chatbot! You can ask me anything, feel free to ask...&quot;)</span>
+
+<span class="sd">    get_user_input()</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">pass</span></div>
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2024, ProjectMembers.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
