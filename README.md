@@ -12,3 +12,4 @@ We suggest **Python 3.12.6** & `virtualenv` to avoid any type of unwanted depend
 ### Steps to run the Chatbot:
 1. If you are same directory in `cmd` then type `pip install -r requirements.txt` to install the necessary dependencies.
 2. After that, type `python exe.py` to run the chatbot.
+
