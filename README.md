@@ -1,6 +1,6 @@
 # Project_CSE327
 
-We suggest **Python 3.12.6** & `virtualenv` to avoid any unwanted dependency conflict behaviors.
+Use **Python 3.12.6** & `virtualenv` to avoid any unwanted dependency conflict behaviors.
 
 ## Welcome to the Chat_Service wiki!
 ### Steps to create `virtualenv`:
