@@ -1,7 +1,21 @@
 import unittest
 from unittest.mock import patch, MagicMock
-import streamlit as st
+import sys
 
+# Mocking modules that are not available in the environment
+sys.modules["streamlit"] = MagicMock()
+sys.modules["pyrebase"] = MagicMock()
+sys.modules["speech_recognition"] = MagicMock()
+sys.modules["groq"] = MagicMock()
+sys.modules["langchain_core"] = MagicMock()
+sys.modules["langchain_core.messages"] = MagicMock()
+sys.modules["langchain"] = MagicMock()
+sys.modules["langchain.chains"] = MagicMock()
+sys.modules["langchain.chains.conversation"] = MagicMock()
+sys.modules["langchain.chains.conversation.memory"] = MagicMock()
+sys.modules["langchain_groq"] = MagicMock()
+
+import streamlit as st
 from chatbot import get_user_input
 
 class TestGetUserInput(unittest.TestCase):
