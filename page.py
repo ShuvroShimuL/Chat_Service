@@ -7,7 +7,7 @@ import os
 
 # Configuration key of firebase 
 firebase_config = {
-  "apiKey": "AIzaSyD7T9XpwAsjsbwWkJZQgaGQLYDG5EdrCgA",
+  "apiKey": "Your API Key",
   "authDomain": "project327-aee83.firebaseapp.com",
   "projectId": "project327-aee83",
   "databaseURL": "https://project327-aee83-default-rtdb.asia-southeast1.firebasedatabase.app/",
