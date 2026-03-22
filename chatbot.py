@@ -49,9 +49,15 @@ def get_response(user_question):
                 {"output": message["AI"]}    
             )
 
+    # Retrieve Groq API Key from environment
+    groq_api_key = os.environ.get("GROQ_API_KEY")
+    if not groq_api_key:
+        st.error("GROQ_API_KEY environment variable is not set. Please configure it to use the chatbot.")
+        return
+
     # Initialize Groq Langchain chat object and conversation
     groq_chat = ChatGroq(
-        groq_api_key="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", 
+        groq_api_key=groq_api_key,
         model_name="llama3-70b-8192"
     )
     # Built-in function in conversation langchain framework
