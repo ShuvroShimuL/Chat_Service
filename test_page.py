@@ -75,5 +75,64 @@ class TestLoginPage(unittest.TestCase):
         mock_sign_in.assert_called_once_with("test@example.com", "wrongpassword")
         mock_st.warning.assert_called_once_with("Incorrect email or Incorrect password!")
 
+    @patch("page.st.button")
+    @patch("page.st.text_input")
+    @patch("page.st.success")
+    @patch("page.st.balloons")
+    @patch("page.st.info")
+    @patch("page.auth.create_user_with_email_and_password")
+    @patch("page.auth.sign_in_with_email_and_password")
+    @patch("page.db.child")
+    def test_sign_up_success(self, mock_db_child, mock_sign_in, mock_create_user, mock_info, mock_balloons, mock_success, mock_text_input, mock_button):
+        # Simulate button click
+        mock_button.return_value = True
+        mock_text_input.side_effect = ["test@example.com", "password123", "testuser"]
+
+        # Mock Firebase responses
+        mock_create_user.return_value = {"localId": "user123"}
+        mock_sign_in.return_value = {"localId": "user123"}
+
+        # Mock database chaining
+        mock_child_instance = MagicMock()
+        mock_db_child.return_value = mock_child_instance
+        mock_child_instance.child.return_value = mock_child_instance
+
+        # Call sign_up
+        page.sign_up()
+
+        # Verify success path
+        mock_create_user.assert_called_once_with("test@example.com", "password123")
+        mock_success.assert_called_once_with("Your account is created suceesfully!")
+        mock_balloons.assert_called_once()
+        mock_sign_in.assert_called_once_with("test@example.com", "password123")
+
+        # Verify database calls
+        mock_db_child.assert_called_with("user123")
+        self.assertEqual(mock_child_instance.set.call_count, 3)
+        mock_child_instance.set.assert_any_call("testuser")
+        mock_child_instance.set.assert_any_call("test@example.com")
+        mock_child_instance.set.assert_any_call("user123")
+
+        mock_info.assert_called_once_with("Login via login drop down selection")
+
+    @patch("page.st.button")
+    @patch("page.st.text_input")
+    @patch("page.st.warning")
+    @patch("page.auth.create_user_with_email_and_password")
+    def test_sign_up_failure(self, mock_create_user, mock_warning, mock_text_input, mock_button):
+        # Simulate button click
+        mock_button.return_value = True
+        mock_text_input.side_effect = ["test@example.com", "password123", "testuser"]
+
+        # Mock create_user to raise an exception
+        mock_create_user.side_effect = Exception("Account already exists")
+
+        # Call sign_up
+        page.sign_up()
+
+        # Verify error path
+        mock_create_user.assert_called_once_with("test@example.com", "password123")
+        mock_warning.assert_called_once_with("Already account exists with this email!")
+
 if __name__ == "__main__":
     unittest.main()
