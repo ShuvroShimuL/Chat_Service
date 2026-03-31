@@ -10,7 +10,7 @@ import speech_recognition as sr
 import os
 
 # Command to run chatbot
-cmd = "streamlit run page.py"
+cmd = ["streamlit", "run", "page.py"]
 
 # Set the memory length for the conversation
 conversational_memory_length = 10
@@ -33,7 +33,7 @@ def voice_interact():
             user_question = r.recognize_google(audio)
             st.text("🗣 : " + user_question)
             return user_question
-    except Exception as e:
+    except Exception:
         st.warning("Failed to understand!")
 
 # Generate user response
@@ -78,7 +78,7 @@ def get_response(user_question):
         if message:
             st.success("Response genereated successfully!")
                 
-    except Exception as e:
+    except Exception:
             st.warning("Something Happened!")
     
     st.text(" ")
@@ -89,7 +89,7 @@ def get_response(user_question):
 
 # Exit from current page
 def exit_from_chatbot():
-    p = subprocess.Popen(cmd, shell = True)
+    subprocess.Popen(cmd)
     os._exit(0)
     
     
