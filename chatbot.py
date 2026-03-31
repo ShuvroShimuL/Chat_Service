@@ -1,5 +1,5 @@
 # Importing nesssary Modules
-import streamlit as st 
+import streamlit as st
 from langchain_core.messages import SystemMessage
 from groq import Groq
 from langchain.chains import ConversationChain
@@ -41,30 +41,26 @@ def get_response(user_question):
     # Initialize session state for chat history
     if "chat_history" not in st.session_state:
         st.session_state.chat_history = []
-    else:
-        # Restore chat history in memory
-        for message in st.session_state.chat_history:
-            memory.save_context(
-                {"input": message["human"]},  
-                {"output": message["AI"]}    
-            )
 
-    # Retrieve Groq API Key from environment
-    groq_api_key = os.environ.get("GROQ_API_KEY")
-    if not groq_api_key:
-        st.error("GROQ_API_KEY environment variable is not set. Please configure it to use the chatbot.")
-        return
+    if "conversation" not in st.session_state:
+        # Retrieve Groq API Key from environment
+        groq_api_key = os.environ.get("GROQ_API_KEY")
+        if not groq_api_key:
+            st.error("GROQ_API_KEY environment variable is not set. Please configure it to use the chatbot.")
+            return
 
-    # Initialize Groq Langchain chat object and conversation
-    groq_chat = ChatGroq(
-        groq_api_key=groq_api_key,
-        model_name="llama3-70b-8192"
-    )
-    # Built-in function in conversation langchain framework
-    conversation = ConversationChain(
-        llm=groq_chat,
-        memory=memory
-    )
+        # Initialize Groq Langchain chat object and conversation
+        groq_chat = ChatGroq(
+            groq_api_key=groq_api_key,
+            model_name="llama3-70b-8192"
+        )
+        # Built-in function in conversation langchain framework
+        st.session_state.conversation = ConversationChain(
+            llm=groq_chat,
+            memory=memory
+        )
+
+    conversation = st.session_state.conversation
 
     try:
         # Get the response using the correct key
@@ -72,18 +68,18 @@ def get_response(user_question):
         # Save the interaction in session state
         message = {"human": user_question, "AI": response}
         st.session_state.chat_history.append(message)
-        
+
         # Display the chatbot's response
         st.write("Chatbot 🤖: " + response)
         if message:
             st.success("Response genereated successfully!")
-                
-    except Exception as e:
+
+    except Exception:
             st.warning("Something Happened!")
-    
+
     st.text(" ")
     st.text(" ")
-    
+
     if st.button("Exit"):
         exit_from_chatbot()
 
@@ -91,9 +87,9 @@ def get_response(user_question):
 def exit_from_chatbot():
     p = subprocess.Popen(cmd, shell = True)
     os._exit(0)
-    
-    
- 
+
+
+
 if __name__ == "__main__":
     # Title and description
     st.title("Chat with 🚀")
