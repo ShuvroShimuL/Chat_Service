@@ -4,6 +4,7 @@ import pyrebase
 import subprocess
 from datetime import datetime
 import os
+import re
 
 # Configuration key of firebase 
 firebase_config = {
@@ -54,6 +55,16 @@ def sign_up():
     handle = st.text_input("Enter Your User Name")
     # If button actives then, (using exception handling to confirm the action)
     if st.button("Create my account"):
+        if not re.match(r"^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$", email):
+            st.warning("Please enter a valid email address")
+            return
+        if len(password) < 6:
+            st.warning("Password must be at least 6 characters long")
+            return
+        if len(handle) == 0:
+            st.warning("Please enter a valid user name")
+            return
+
         try:
             # Create new user with email and password
             user = auth.create_user_with_email_and_password(email, password)

@@ -75,5 +75,69 @@ class TestLoginPage(unittest.TestCase):
         mock_sign_in.assert_called_once_with("test@example.com", "wrongpassword")
         mock_st.warning.assert_called_once_with("Incorrect email or Incorrect password!")
 
+
+
+class TestSignUpPage(unittest.TestCase):
+    def setUp(self):
+        # Reset mocks before each test
+        mock_st.reset_mock()
+        mock_auth.reset_mock()
+        mock_db.reset_mock()
+
+    @patch("page.st.button")
+    @patch("page.st.text_input")
+    def test_sign_up_invalid_email(self, mock_text_input, mock_button):
+        mock_button.return_value = True
+        mock_text_input.side_effect = ["invalidemail", "password123", "handle"]
+
+        page.sign_up()
+
+        mock_st.warning.assert_called_once_with("Please enter a valid email address")
+        mock_auth.create_user_with_email_and_password.assert_not_called()
+
+    @patch("page.st.button")
+    @patch("page.st.text_input")
+    def test_sign_up_short_password(self, mock_text_input, mock_button):
+        mock_button.return_value = True
+        mock_text_input.side_effect = ["test@example.com", "short", "handle"]
+
+        page.sign_up()
+
+        mock_st.warning.assert_called_once_with("Password must be at least 6 characters long")
+        mock_auth.create_user_with_email_and_password.assert_not_called()
+
+    @patch("page.st.button")
+    @patch("page.st.text_input")
+    def test_sign_up_empty_handle(self, mock_text_input, mock_button):
+        mock_button.return_value = True
+        mock_text_input.side_effect = ["test@example.com", "password123", ""]
+
+        page.sign_up()
+
+        mock_st.warning.assert_called_once_with("Please enter a valid user name")
+        mock_auth.create_user_with_email_and_password.assert_not_called()
+
+    @patch("page.st.button")
+    @patch("page.st.text_input")
+    @patch("page.auth.create_user_with_email_and_password")
+    @patch("page.auth.sign_in_with_email_and_password")
+    def test_sign_up_success(self, mock_sign_in, mock_create, mock_text_input, mock_button):
+        mock_button.return_value = True
+        mock_text_input.side_effect = ["test@example.com", "password123", "handle123"]
+
+        # Mock user return values
+        mock_create.return_value = {"localId": "12345"}
+        mock_sign_in.return_value = {"localId": "12345"}
+
+        page.sign_up()
+
+        mock_create.assert_called_once_with("test@example.com", "password123")
+        mock_sign_in.assert_called_once_with("test@example.com", "password123")
+
+        mock_st.success.assert_called_once_with("Your account is created suceesfully!")
+
+
+
+
 if __name__ == "__main__":
     unittest.main()
