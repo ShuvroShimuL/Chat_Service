@@ -1,6 +1,5 @@
 # Importing nesssary Modules
-import streamlit as st 
-from langchain_core.messages import SystemMessage
+import streamlit as st
 from groq import Groq
 from langchain.chains import ConversationChain
 from langchain.chains.conversation.memory import ConversationBufferWindowMemory
@@ -45,8 +44,8 @@ def get_response(user_question):
         # Restore chat history in memory
         for message in st.session_state.chat_history:
             memory.save_context(
-                {"input": message["human"]},  
-                {"output": message["AI"]}    
+                {"input": message["human"]},
+                {"output": message["AI"]}
             )
 
     # Retrieve Groq API Key from environment
@@ -72,18 +71,18 @@ def get_response(user_question):
         # Save the interaction in session state
         message = {"human": user_question, "AI": response}
         st.session_state.chat_history.append(message)
-        
+
         # Display the chatbot's response
         st.write("Chatbot 🤖: " + response)
         if message:
             st.success("Response genereated successfully!")
-                
+
     except Exception as e:
             st.warning("Something Happened!")
-    
+
     st.text(" ")
     st.text(" ")
-    
+
     if st.button("Exit"):
         exit_from_chatbot()
 
@@ -91,9 +90,9 @@ def get_response(user_question):
 def exit_from_chatbot():
     p = subprocess.Popen(cmd, shell = True)
     os._exit(0)
-    
-    
- 
+
+
+
 if __name__ == "__main__":
     # Title and description
     st.title("Chat with 🚀")
