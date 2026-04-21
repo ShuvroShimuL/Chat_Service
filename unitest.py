@@ -95,6 +95,34 @@ class TestGetResponse(unittest.TestCase):
             {"human": "Hi bot", "AI": "Mocked AI response"}
         )
 
+    @patch("chatbot.st")
+    @patch("chatbot.ChatGroq")
+    @patch("chatbot.ConversationChain")
+    @patch("chatbot.memory")
+    def test_get_response_exception(self, mock_memory, mock_conversation_chain, mock_chat_groq, mock_st):
+        # Setup st.session_state as a SessionStateMock
+        mock_st.session_state = SessionStateMock()
+
+        # Configure ConversationChain instance to raise an Exception
+        mock_conversation_instance = MagicMock()
+        mock_conversation_chain.return_value = mock_conversation_instance
+        mock_conversation_instance.predict.side_effect = Exception("API error")
+
+        # Prevent exit button from being triggered
+        mock_st.button.return_value = False
+
+        # Mock environment variable
+        with patch.dict('os.environ', {'GROQ_API_KEY': 'test_key'}):
+            # Call the function
+            get_response("Hi bot")
+
+        # Assertions for LangChain/Groq interactions
+        mock_conversation_chain.assert_called_once()
+        mock_conversation_instance.predict.assert_called_once_with(input="Hi bot")
+
+        # Assertion to ensure the warning is displayed
+        mock_st.warning.assert_called_once_with("Something Happened!")
+
 
 class TestVoiceInteract(unittest.TestCase):
     @patch("chatbot.sr.Recognizer")
