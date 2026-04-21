@@ -62,10 +62,11 @@ class TestGetResponse(unittest.TestCase):
     @patch("chatbot.st")
     @patch("chatbot.ChatGroq")
     @patch("chatbot.ConversationChain")
-    @patch("chatbot.memory")
-    def test_get_response_success(self, mock_memory, mock_conversation_chain, mock_chat_groq, mock_st):
+    def test_get_response_success(self, mock_conversation_chain, mock_chat_groq, mock_st):
         # Setup st.session_state as a SessionStateMock
         mock_st.session_state = SessionStateMock()
+        # Setup memory in mock_st.session_state
+        mock_st.session_state.memory = MagicMock()
 
         # Configure ConversationChain instance
         mock_conversation_instance = MagicMock()

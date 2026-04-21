@@ -12,9 +12,6 @@ import os
 # Command to run chatbot
 cmd = "streamlit run page.py"
 
-# Set the memory length for the conversation
-conversational_memory_length = 10
-memory = ConversationBufferWindowMemory(k=conversational_memory_length)
 
 # Collecting user question
 def get_user_input():
@@ -41,13 +38,11 @@ def get_response(user_question):
     # Initialize session state for chat history
     if "chat_history" not in st.session_state:
         st.session_state.chat_history = []
-    else:
-        # Restore chat history in memory
-        for message in st.session_state.chat_history:
-            memory.save_context(
-                {"input": message["human"]},  
-                {"output": message["AI"]}    
-            )
+
+    # Initialize session state for memory
+    if "memory" not in st.session_state:
+        conversational_memory_length = 10
+        st.session_state.memory = ConversationBufferWindowMemory(k=conversational_memory_length)
 
     # Retrieve Groq API Key from environment
     groq_api_key = os.environ.get("GROQ_API_KEY")
@@ -63,7 +58,7 @@ def get_response(user_question):
     # Built-in function in conversation langchain framework
     conversation = ConversationChain(
         llm=groq_chat,
-        memory=memory
+        memory=st.session_state.memory
     )
 
     try:
