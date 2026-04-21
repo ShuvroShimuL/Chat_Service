@@ -23,12 +23,6 @@ memory = ConversationBufferWindowMemory(k=conversational_memory_length)
 
 # Collecting user question
 def get_user_input():
-    """
-    user_question = st.text_input("Ask a question:")
-    if st.button("🎙️"):
-        user_question = voice_interact()
-    get_response(user_question)
-    """
     pass
 
 # Voice interact
