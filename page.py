@@ -2,7 +2,6 @@
 import streamlit as st
 import pyrebase
 import subprocess
-from datetime import datetime
 import os
 
 # Configuration key of firebase 
