@@ -25,8 +25,6 @@ auth = firebase.auth()
 # Create the database in firebase
 db = firebase.database()
 
-# Command to run chatbot
-cmd = "streamlit run chatbot.py"
 
 # Login function in the page
 def login():
@@ -40,9 +38,7 @@ def login():
             user = auth.sign_in_with_email_and_password(email, password)
             st.success("Logged in successfully!")
             # If login process occurs successfully then run the chatbot
-            p = subprocess.Popen(cmd, shell = True)
-            # Stop the current process
-            os._exit(0)
+            st.switch_page("chatbot.py")
         except Exception as e:
             st.warning("Incorrect email or Incorrect password!")
 

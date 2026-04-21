@@ -41,9 +41,7 @@ class TestLoginPage(unittest.TestCase):
     @patch("page.st.button")
     @patch("page.st.text_input")
     @patch("page.auth.sign_in_with_email_and_password")
-    @patch("page.subprocess.Popen")
-    @patch("page.os._exit")
-    def test_login_success(self, mock_exit, mock_popen, mock_sign_in, mock_text_input, mock_button):
+    def test_login_success(self, mock_sign_in, mock_text_input, mock_button):
         # Simulate button click
         mock_button.return_value = True
         mock_text_input.side_effect = ["test@example.com", "password123"]
@@ -54,8 +52,7 @@ class TestLoginPage(unittest.TestCase):
         # Verify success path
         mock_sign_in.assert_called_once_with("test@example.com", "password123")
         mock_st.success.assert_called_once_with("Logged in successfully!")
-        mock_popen.assert_called_once()
-        mock_exit.assert_called_once_with(0)
+        mock_st.switch_page.assert_called_once_with("chatbot.py")
 
     @patch("page.st.button")
     @patch("page.st.text_input")

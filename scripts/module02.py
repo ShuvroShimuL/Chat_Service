@@ -13,8 +13,6 @@ import subprocess
 import speech_recognition as sr
 import os
 """
-# Command to run chatbot
-cmd = "streamlit run page.py"
 
 # Set the memory length for the conversation
 conversational_memory_length = 10
@@ -104,8 +102,7 @@ def get_response(user_question):
 # Exit from the current page 
 def exit_from_chatbot():
     """
-    p = subprocess.Popen(cmd, shell = True)
-    os._exit(0)
+    st.switch_page("page.py")
     """
     pass
     
