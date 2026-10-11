@@ -82,7 +82,10 @@ class TestGetResponse(unittest.TestCase):
 
         # Assertions for LangChain/Groq interactions
         mock_conversation_chain.assert_called_once()
-        mock_conversation_instance.predict.assert_called_once_with(input="Hi bot")
+
+        # In our optimized code, st.session_state.conversation gets assigned the mock_conversation_instance
+        # Let's ensure the mocked instance was used to predict
+        mock_st.session_state.conversation.predict.assert_called_once_with(input="Hi bot")
 
         # Assertions for Streamlit output
         mock_st.write.assert_called_once_with("Chatbot 🤖: Mocked AI response")
