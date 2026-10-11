@@ -125,5 +125,38 @@ class TestSignUpPage(unittest.TestCase):
 
         mock_warning.assert_called_once_with("Already account exists with this email!")
 
+    @patch("page.st.button")
+    @patch("page.st.text_input")
+    def test_sign_up_invalid_email(self, mock_text_input, mock_button):
+        mock_button.return_value = True
+        mock_text_input.side_effect = ["invalidemail", "password123", "handle"]
+
+        page.sign_up()
+
+        mock_st.warning.assert_called_once_with("Please enter a valid email address")
+        mock_auth.create_user_with_email_and_password.assert_not_called()
+
+    @patch("page.st.button")
+    @patch("page.st.text_input")
+    def test_sign_up_short_password(self, mock_text_input, mock_button):
+        mock_button.return_value = True
+        mock_text_input.side_effect = ["test@example.com", "short", "handle"]
+
+        page.sign_up()
+
+        mock_st.warning.assert_called_once_with("Password must be at least 6 characters long")
+        mock_auth.create_user_with_email_and_password.assert_not_called()
+
+    @patch("page.st.button")
+    @patch("page.st.text_input")
+    def test_sign_up_empty_handle(self, mock_text_input, mock_button):
+        mock_button.return_value = True
+        mock_text_input.side_effect = ["test@example.com", "password123", ""]
+
+        page.sign_up()
+
+        mock_st.warning.assert_called_once_with("Please enter a valid user name")
+        mock_auth.create_user_with_email_and_password.assert_not_called()
+
 if __name__ == "__main__":
     unittest.main()
