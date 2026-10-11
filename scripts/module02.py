@@ -4,8 +4,6 @@ This module collects user queries and generate response using langchain. It also
 
 # Importing nesssary Modules
 import streamlit as st 
-from langchain_core.messages import SystemMessage
-from groq import Groq
 from langchain.chains import ConversationChain
 from langchain.chains.conversation.memory import ConversationBufferWindowMemory
 from langchain_groq import ChatGroq
