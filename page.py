@@ -61,9 +61,11 @@ def sign_up():
             # Checks whether the email and pass is macthed with existing email
             user = auth.sign_in_with_email_and_password(email, password)
             # Creates database entries with user informations
-            db.child(user['localId']).child("Handle").set(handle)
-            db.child(user['localId']).child("Email").set(email)
-            db.child(user['localId']).child("ID").set(user['localId'])
+            db.child(user['localId']).set({
+                "Handle": handle,
+                "Email": email,
+                "ID": user['localId']
+            })
             st.info("Login via login drop down selection")
             
         except Exception:
