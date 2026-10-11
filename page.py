@@ -36,7 +36,7 @@ def login():
     if st.button("Login"):
         try:
             # Checks whether the email and pass is macthed with existing email
-            user = auth.sign_in_with_email_and_password(email, password)
+            auth.sign_in_with_email_and_password(email, password)
             st.success("Logged in successfully!")
             # If login process occurs successfully then run the chatbot
             subprocess.Popen(cmd, shell=False)
