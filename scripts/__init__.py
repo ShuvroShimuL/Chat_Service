@@ -3,6 +3,6 @@
 
 if __name__ == "__main__":
     """
-    p = subprocess.Popen(cmd, shell = True)
+    p = subprocess.Popen(cmd, shell=False)
     """
     pass
