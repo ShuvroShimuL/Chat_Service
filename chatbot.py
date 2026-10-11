@@ -33,7 +33,7 @@ def voice_interact():
             user_question = r.recognize_google(audio)
             st.text("🗣 : " + user_question)
             return user_question
-    except Exception as e:
+    except Exception:
         st.warning("Failed to understand!")
 
 # Generate user response
@@ -78,7 +78,7 @@ def get_response(user_question):
         if message:
             st.success("Response genereated successfully!")
                 
-    except Exception as e:
+    except Exception:
             st.warning("Something Happened!")
     
     st.text(" ")

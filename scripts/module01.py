@@ -52,7 +52,7 @@ def login():
             p = subprocess.Popen(cmd, shell=False)
             # Stop the current process
             os._exit(0)
-        except Exception as e:
+        except Exception:
             st.warning("Incorrect email or Incorrect password!")
     """
     pass
@@ -79,7 +79,7 @@ def sign_up():
             db.child(user['localId']).child("ID").set(user['localId'])
             st.info("Login via login drop down selection")
             
-        except Exception as e:
+        except Exception:
             st.warning("Already account exists with this email!")
     """
     pass
