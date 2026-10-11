@@ -1,162 +1,153 @@
 import unittest
-from unittest.mock import patch, MagicMock
-import sys
-import os
+from unittest.mock import patch
 
-# Mocking modules that are not available in the environment
-mock_st = MagicMock()
-mock_pyrebase = MagicMock()
+from test_helpers import USER, load_app
 
-sys.modules["streamlit"] = mock_st
-sys.modules["pyrebase"] = mock_pyrebase
-
-# We also need to mock the objects returned by pyrebase
-mock_firebase = MagicMock()
-mock_pyrebase.initialize_app.return_value = mock_firebase
-mock_auth = MagicMock()
-mock_firebase.auth.return_value = mock_auth
-mock_db = MagicMock()
-mock_firebase.database.return_value = mock_db
-
-# Mocking SpeechRecognition as well since chatbot.py might be imported or needed elsewhere
-sys.modules["speech_recognition"] = MagicMock()
-sys.modules["groq"] = MagicMock()
-sys.modules["langchain_core"] = MagicMock()
-sys.modules["langchain_core.messages"] = MagicMock()
-sys.modules["langchain"] = MagicMock()
-sys.modules["langchain.chains"] = MagicMock()
-sys.modules["langchain.chains.conversation"] = MagicMock()
-sys.modules["langchain.chains.conversation.memory"] = MagicMock()
-sys.modules["langchain_groq"] = MagicMock()
-
-import page
 
 class TestLoginPage(unittest.TestCase):
     def setUp(self):
-        # Reset mocks before each test
-        mock_st.reset_mock()
-        mock_auth.reset_mock()
-        mock_db.reset_mock()
+        self.app = load_app()
+        self.page = self.app.page
+        self.ui = self.app.st
+        self.ui.button.return_value = True
+        self.ui.text_input.side_effect = ["test@example.com", "password123"]
 
-    @patch("page.st.button")
-    @patch("page.st.text_input")
-    @patch("page.auth.sign_in_with_email_and_password")
-    @patch("page.subprocess.Popen")
-    @patch("page.os._exit")
-    def test_login_success(self, mock_exit, mock_popen, mock_sign_in, mock_text_input, mock_button):
-        # Simulate button click
-        mock_button.return_value = True
-        mock_text_input.side_effect = ["test@example.com", "password123"]
+    def test_login_persists_user_and_reruns_without_process_calls(self):
+        self.page.auth.sign_in_with_email_and_password.return_value = USER.copy()
+        self.ui.session_state.update(
+            conversation="old conversation", chat_history=["old history"]
+        )
+        with patch("subprocess.Popen") as popen, patch("os._exit") as process_exit:
+            self.page.login()
+        self.page.auth.sign_in_with_email_and_password.assert_called_once_with(
+            "test@example.com", "password123"
+        )
+        self.assertEqual(self.ui.session_state, {"user": USER})
+        self.ui.rerun.assert_called_once()
+        popen.assert_not_called()
+        process_exit.assert_not_called()
 
-        # Call login
-        page.login()
+    def test_login_failure_does_not_authenticate_or_navigate(self):
+        self.page.auth.sign_in_with_email_and_password.side_effect = RuntimeError(
+            "Auth failed"
+        )
+        self.page.login()
+        self.ui.warning.assert_called_once_with("Incorrect email or Incorrect password!")
+        self.ui.rerun.assert_not_called()
+        self.assertFalse(self.app.session_auth.is_authenticated())
 
-        # Verify success path
-        mock_sign_in.assert_called_once_with("test@example.com", "password123")
-        mock_st.success.assert_called_once_with("Logged in successfully!")
-        mock_popen.assert_called_once()
-        mock_exit.assert_called_once_with(0)
+    def test_incomplete_authentication_response_is_rejected(self):
+        self.page.auth.sign_in_with_email_and_password.return_value = {"localId": "user123"}
+        self.page.login()
+        self.assertFalse(self.app.session_auth.is_authenticated())
+        self.ui.rerun.assert_not_called()
 
-    @patch("page.st.button")
-    @patch("page.st.text_input")
-    @patch("page.auth.sign_in_with_email_and_password")
-    def test_login_failure(self, mock_sign_in, mock_text_input, mock_button):
-        # Simulate button click
-        mock_button.return_value = True
-        mock_text_input.side_effect = ["test@example.com", "wrongpassword"]
+    def test_authenticated_main_renders_chat_in_same_app(self):
+        self.ui.session_state["user"] = USER.copy()
+        with patch.object(self.page, "chat_main") as chat_main:
+            self.page.main()
+        chat_main.assert_called_once()
+        self.ui.selectbox.assert_not_called()
 
-        # Mock sign_in to raise an exception
-        mock_sign_in.side_effect = Exception("Auth failed")
+    def test_unauthenticated_main_renders_login(self):
+        self.ui.selectbox.return_value = "Login"
+        with (
+            patch.object(self.page, "login") as login,
+            patch.object(self.page, "chat_main") as chat_main,
+        ):
+            self.page.main()
+        login.assert_called_once()
+        chat_main.assert_not_called()
 
-        # Call login
-        page.login()
-
-        # Verify error path
-        mock_sign_in.assert_called_once_with("test@example.com", "wrongpassword")
-        mock_st.warning.assert_called_once_with("Incorrect email or Incorrect password!")
+    def test_unauthenticated_main_renders_signup(self):
+        self.ui.selectbox.return_value = "Sign up"
+        with (
+            patch.object(self.page, "sign_up") as signup,
+            patch.object(self.page, "chat_main") as chat_main,
+        ):
+            self.page.main()
+        signup.assert_called_once()
+        chat_main.assert_not_called()
 
 
 class TestSignUpPage(unittest.TestCase):
     def setUp(self):
-        # Reset mocks before each test
-        mock_st.reset_mock()
-        mock_auth.reset_mock()
-        mock_db.reset_mock()
+        self.app = load_app()
+        self.page = self.app.page
+        self.ui = self.app.st
+        self.ui.button.return_value = True
+        self.ui.text_input.side_effect = ["test@example.com", "password123", "testuser"]
+        self.page.auth.create_user_with_email_and_password.return_value = USER.copy()
 
-    @patch("page.st.button")
-    @patch("page.st.text_input")
-    @patch("page.st.success")
-    @patch("page.st.balloons")
-    @patch("page.st.info")
-    @patch("page.auth.create_user_with_email_and_password")
-    @patch("page.auth.sign_in_with_email_and_password")
-    @patch("page.db.child")
-    def test_signup_success(self, mock_db_child, mock_sign_in, mock_create_user, mock_info, mock_balloons, mock_success, mock_text_input, mock_button):
-        mock_button.return_value = True
-        mock_text_input.side_effect = ["test@example.com", "password123", "testuser"]
+    def test_signup_saves_profile_with_new_users_token(self):
+        self.page.sign_up()
+        self.page.auth.create_user_with_email_and_password.assert_called_once_with(
+            "test@example.com", "password123"
+        )
+        self.page.db.child.assert_called_once_with("user123")
+        self.page.db.child.return_value.set.assert_called_once_with(
+            {"Handle": "testuser", "Email": "test@example.com", "ID": "user123"},
+            "test-token",
+        )
+        self.page.auth.sign_in_with_email_and_password.assert_not_called()
+        self.ui.success.assert_called_once_with("Your account is created successfully!")
+        self.ui.info.assert_called_once()
+        self.assertFalse(self.app.session_auth.is_authenticated())
 
-        mock_user = {"localId": "user123"}
-        mock_create_user.return_value = mock_user
-        mock_sign_in.return_value = mock_user
+    def test_creation_failure_does_not_write_profile(self):
+        self.page.auth.create_user_with_email_and_password.side_effect = RuntimeError(
+            "Email exists"
+        )
+        self.page.sign_up()
+        self.page.db.child.assert_not_called()
+        self.ui.success.assert_not_called()
+        self.ui.warning.assert_called_once_with(
+            "Could not create your account. Check the email and password, "
+            "or try logging in if you already have an account."
+        )
 
-        page.sign_up()
+    def test_profile_failure_does_not_report_duplicate_account(self):
+        self.page.db.child.return_value.set.side_effect = PermissionError(
+            "Permission denied"
+        )
+        self.page.sign_up()
+        self.page.auth.create_user_with_email_and_password.assert_called_once()
+        self.ui.success.assert_not_called()
+        self.ui.balloons.assert_not_called()
+        self.ui.warning.assert_called_once_with(
+            "Your account was created, but your profile could not be saved. "
+            "You can still log in."
+        )
 
-        mock_create_user.assert_called_once_with("test@example.com", "password123")
-        mock_success.assert_called_once_with("Your account is created suceesfully!")
-        mock_balloons.assert_called_once()
-        mock_sign_in.assert_called_once_with("test@example.com", "password123")
+    def test_invalid_signup_input_never_creates_account(self):
+        cases = (
+            (["invalidemail", "password123", "handle"], "Please enter a valid email address"),
+            (["test@example.com", "short", "handle"], "Password must be at least 6 characters long"),
+            (["test@example.com", "password123", ""], "Please enter a valid user name"),
+            (["test@example.com", "password123", "   "], "Please enter a valid user name"),
+        )
+        for inputs, warning in cases:
+            with self.subTest(inputs=inputs):
+                app = load_app()
+                app.st.button.return_value = True
+                app.st.text_input.side_effect = inputs
+                app.page.sign_up()
+                app.st.warning.assert_called_once_with(warning)
+                app.page.auth.create_user_with_email_and_password.assert_not_called()
 
-        # Verify db calls
-        self.assertTrue(mock_db_child.called)
 
-        mock_info.assert_called_once_with("Login via login drop down selection")
+class TestSessionAuthentication(unittest.TestCase):
+    def test_invalid_user_records_cannot_authenticate(self):
+        app = load_app()
+        for user in (
+            None, True, {}, {"localId": "user123"},
+            {"localId": "", "idToken": "token"},
+            {"localId": "user123", "idToken": ""},
+        ):
+            with self.subTest(user=user):
+                app.st.session_state["user"] = user
+                self.assertFalse(app.session_auth.is_authenticated())
 
-    @patch("page.st.button")
-    @patch("page.st.text_input")
-    @patch("page.st.warning")
-    @patch("page.auth.create_user_with_email_and_password")
-    def test_signup_failure(self, mock_create_user, mock_warning, mock_text_input, mock_button):
-        mock_button.return_value = True
-        mock_text_input.side_effect = ["test@example.com", "password123", "testuser"]
-
-        mock_create_user.side_effect = Exception("Email exists")
-
-        page.sign_up()
-
-        mock_warning.assert_called_once_with("Already account exists with this email!")
-
-    @patch("page.st.button")
-    @patch("page.st.text_input")
-    def test_sign_up_invalid_email(self, mock_text_input, mock_button):
-        mock_button.return_value = True
-        mock_text_input.side_effect = ["invalidemail", "password123", "handle"]
-
-        page.sign_up()
-
-        mock_st.warning.assert_called_once_with("Please enter a valid email address")
-        mock_auth.create_user_with_email_and_password.assert_not_called()
-
-    @patch("page.st.button")
-    @patch("page.st.text_input")
-    def test_sign_up_short_password(self, mock_text_input, mock_button):
-        mock_button.return_value = True
-        mock_text_input.side_effect = ["test@example.com", "short", "handle"]
-
-        page.sign_up()
-
-        mock_st.warning.assert_called_once_with("Password must be at least 6 characters long")
-        mock_auth.create_user_with_email_and_password.assert_not_called()
-
-    @patch("page.st.button")
-    @patch("page.st.text_input")
-    def test_sign_up_empty_handle(self, mock_text_input, mock_button):
-        mock_button.return_value = True
-        mock_text_input.side_effect = ["test@example.com", "password123", ""]
-
-        page.sign_up()
-
-        mock_st.warning.assert_called_once_with("Please enter a valid user name")
-        mock_auth.create_user_with_email_and_password.assert_not_called()
 
 if __name__ == "__main__":
     unittest.main()

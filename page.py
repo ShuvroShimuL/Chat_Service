@@ -1,11 +1,13 @@
 # Importing nesssary Modules
 import streamlit as st
 import pyrebase
-import subprocess
 import os
 import re
 
-# Configuration key of firebase 
+from chatbot import main as chat_main
+from session_auth import is_authenticated, start_session
+
+# Configuration key of firebase
 firebase_config = {
   "apiKey": os.environ.get("FIREBASE_API_KEY", "Your API Key"),
   "authDomain": "project327-aee83.firebaseapp.com",
@@ -25,9 +27,6 @@ auth = firebase.auth()
 # Create the database in firebase
 db = firebase.database()
 
-# Command to run chatbot
-cmd = ["streamlit", "run", "chatbot.py"]
-
 # Login function in the page
 def login():
     email = st.text_input("Email Address")
@@ -37,21 +36,21 @@ def login():
     if st.button("Login"):
         try:
             # Checks whether the email and pass is macthed with existing email
-            auth.sign_in_with_email_and_password(email, password)
-            st.success("Logged in successfully!")
-            # If login process occurs successfully then run the chatbot
-            subprocess.Popen(cmd, shell=False)
-            # Stop the current process
-            os._exit(0)
+            user = auth.sign_in_with_email_and_password(email, password)
+            start_session(user)
         except Exception:
             st.warning("Incorrect email or Incorrect password!")
+            return
+
+        st.success("Logged in successfully!")
+        st.rerun()
 
 # Sign up function in the page
 def sign_up():
     email = st.text_input("Email Address")
     password = st.text_input("Password(min 6 characters)", type="password")
 
-    handle = st.text_input("Enter Your User Name")
+    handle = st.text_input("Enter Your User Name").strip()
     # If button actives then, (using exception handling to confirm the action)
     if st.button("Create my account"):
         if not re.match(r"^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$", email):
@@ -67,23 +66,37 @@ def sign_up():
         try:
             # Create new user with email and password
             user = auth.create_user_with_email_and_password(email, password)
-            st.success("Your account is created suceesfully!")
-            st.balloons()
-            # Checks whether the email and pass is macthed with existing email
-            user = auth.sign_in_with_email_and_password(email, password)
+        except Exception:
+            st.warning(
+                "Could not create your account. Check the email and password, "
+                "or try logging in if you already have an account."
+            )
+            return
+
+        try:
             # Creates database entries with user informations
             db.child(user['localId']).set({
                 "Handle": handle,
                 "Email": email,
                 "ID": user['localId']
-            })
-            st.info("Login via login drop down selection")
-            
+            }, user['idToken'])
         except Exception:
-            st.warning("Already account exists with this email!")
+            st.warning(
+                "Your account was created, but your profile could not be saved. "
+                "You can still log in."
+            )
+            return
+
+        st.success("Your account is created successfully!")
+        st.balloons()
+        st.info("Login via login drop down selection")
 
 
-if __name__ == "__main__":
+def main():
+    if is_authenticated():
+        chat_main()
+        return
+
     # Title and description
     st.title("Welcome to the chatbot!")
     choice = st.selectbox("Login/Signup",["Login","Sign up"])
@@ -92,3 +105,7 @@ if __name__ == "__main__":
         login()
     else:
         sign_up()
+
+
+if __name__ == "__main__":
+    main()
