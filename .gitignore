@@ -1,0 +1,13 @@
+# Python bytecode
+__pycache__/
+*.pyc
+
+# Virtual environments
+myenv/
+.venv/
+
+# Local secrets
+.env
+
+# Generated Sphinx output (rebuild with `make html` in docs/)
+docs/_build/
