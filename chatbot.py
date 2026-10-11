@@ -87,7 +87,7 @@ def get_response(user_question):
 
 # Exit from current page
 def exit_from_chatbot():
-    p = subprocess.Popen(cmd, shell=False)
+    subprocess.Popen(cmd, shell=False)
     os._exit(0)
     
     
