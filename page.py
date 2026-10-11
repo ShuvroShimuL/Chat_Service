@@ -39,7 +39,7 @@ def login():
             user = auth.sign_in_with_email_and_password(email, password)
             st.success("Logged in successfully!")
             # If login process occurs successfully then run the chatbot
-            p = subprocess.Popen(cmd, shell=False)
+            subprocess.Popen(cmd, shell=False)
             # Stop the current process
             os._exit(0)
         except Exception:
